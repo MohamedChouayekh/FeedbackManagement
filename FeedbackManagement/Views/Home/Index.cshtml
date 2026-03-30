@@ -1,0 +1,151 @@
+﻿@model IEnumerable<FeedbackManagement.Models.Entities.Feedback>
+
+@{
+    ViewBag.Title = "Liste des Feedbacks";
+}
+
+<style>
+    /* Table compacte */
+    .table-striped {
+        font-size: 0.9rem; /* Texte un peu plus petit */
+        margin-top: 20px;
+    }
+
+    .table th, .table td {
+        padding: 0.4rem 0.6rem; /* Réduit l'espacement */
+    }
+
+    /* Limiter largeur globale du tableau */
+    .table {
+        max-width: 900px;
+        margin: auto;
+    }
+
+    /* Boutons plus petits */
+    .btn-sm {
+        font-size: 0.75rem;
+        padding: 0.25rem 0.5rem;
+    }
+
+    /* Coloration des lignes */
+    .table-striped tbody tr:nth-of-type(odd) {
+        background-color: #f8f9fa;
+    }
+
+    /* Header couleur */
+    .table thead {
+        background-color: #343a40;
+        color: #fff;
+    }
+
+    /* Hover */
+    .table tbody tr:hover {
+        background-color: #d1ecf1;
+        cursor: pointer;
+    }
+
+    /* Conteneur général centré */
+    .container-home {
+        max-width: 95%;
+        margin: 0 auto;
+        padding: 10px;
+    }
+</style>
+
+<div class="container-home">
+    <h2>Liste des Feedbacks</h2>
+
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Auteur</th>
+                <th>Comment</th>
+                <th>Status</th>
+                <th>Score</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr id="feedbackRow_@item.Id">
+                    <td>@item.Contact?.Name @item.Contact?.LastName (@item.Contact?.Email)</td>
+                    <td>@item.Comment</td>
+                    <td class="status" style="color:@(item.Status?.Name == "Pending" ? "#f39c12" : item.Status?.Name == "Completed" ? "#2ecc71" : "#3498db")">
+                        @item.Status?.Name
+                    </td>
+                    <td>@item.Score</td>
+                    <td>
+                        <!-- Bouton Edit -->
+                        <a href="javascript:void(0);"
+                           class="btn btn-primary btn-sm btn-edit-status"
+                           data-url="@Url.Action("EditStatusPartial", "Feedback", new { id = item.Id })">
+                            Modify
+                        </a>
+
+                        <!-- Bouton Delete -->
+                        <a href="@Url.Action("DeleteFeedback", "Feedback", new { id = item.Id })"
+                           class="btn btn-danger btn-sm"
+                           onclick="return confirm('Voulez-vous vraiment supprimer ce feedback ?');">
+                            Delete
+                        </a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+<!-- Modal Bootstrap -->
+<div class="modal fade" id="editStatusModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <!-- Contenu chargé dynamiquement -->
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            // Clic sur Edit → ouvre le modal
+            $(document).on("click", ".btn-edit-status", function (e) {
+                e.preventDefault();
+                var url = $(this).data("url");
+                $("#editStatusModal .modal-content").load(url, function () {
+                    $("#editStatusModal").modal("show");
+                });
+            });
+
+            // Soumission du formulaire du modal
+            $(document).on("submit", "#editStatusForm", function (e) {
+                e.preventDefault();
+                var form = $(this);
+
+                $.ajax({
+                    type: form.attr("method"),
+                    url: form.attr("action"),
+                    data: form.serialize(),
+                    success: function (result) {
+                        if (result.success) {
+                            // Mettre à jour la ligne du feedback directement
+                            var row = $("#feedbackRow_" + result.id);
+                            row.find("td:nth-child(2)").text(result.comment);
+                            row.find("td:nth-child(3)").text(result.status)
+                                .css("color", result.status === "Pending" ? "#f39c12" :
+                                    result.status === "Completed" ? "#2ecc71" : "#3498db");
+
+                            // Fermer le modal
+                            $("#editStatusModal").modal("hide");
+                        } else {
+                            alert(result.error || "Erreur lors de la mise à jour !");
+                        }
+                    },
+                    error: function () {
+                        alert("Erreur serveur lors de la mise à jour !");
+                    }
+                });
+            });
+        });
+    </script>
+}

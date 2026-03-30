@@ -1,0 +1,22 @@
+﻿@model FeedbackManagement.Models.Entities.FeedbackStatus
+
+@{
+    ViewBag.Title = "Supprimer le FeedbackStatus";
+}
+
+<h2>Supprimer le FeedbackStatus</h2>
+
+<div class="alert alert-warning">
+    <p>Êtes-vous sûr de vouloir supprimer le status <strong>@Model.Name</strong> et <strong>@Model.Feedbacks.Count()</strong> feedback(s) associé(s) ?</p>
+</div>
+
+@using (Html.BeginForm("DeleteStatus", "Feedback", FormMethod.Post))
+{
+    @Html.AntiForgeryToken()
+    @Html.HiddenFor(m => m.Id)
+
+    <div class="form-group">
+        <input type="submit" value="Oui, supprimer" class="btn btn-danger" />
+        <a href="@Url.Action("Index", "Feedback")" class="btn btn-default">Annuler</a>
+    </div>
+}

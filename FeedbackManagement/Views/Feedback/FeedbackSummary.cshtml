@@ -1,0 +1,31 @@
+﻿@model List<FeedbackManagement.Models.ViewModels.FeedbackStatusViewModel>
+
+<div class="container mt-4">
+    <h3 class="text-center mb-4">📄 Liste des Feedbacks</h3>
+
+    <table class="table table-bordered table-striped">
+        <thead class="table-dark">
+            <tr>
+                <th>ID</th>
+                <th>Commentaire</th>
+                <th>Auteur</th>
+                <th>Statut</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var f in Model)
+            {
+                <tr>
+                    <td>@f.Id</td>
+                    <td>@f.Comment</td>
+                    <td>@f.ContactName (@f.Email)</td>
+                    <td>@f.StatusName</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <div class="text-center mt-4">
+        <a href="@Url.Action("Dashboard", "Home")" class="btn btn-primary">📊 Aller au Dashboard</a>
+    </div>
+</div>

@@ -1,0 +1,126 @@
+﻿@model List<FeedbackManagement.Models.ViewModels.FeedbackStatusViewModel>
+@{
+    ViewBag.Title = "Dashboard";
+}
+
+<div class="container mt-4">
+    <h2 class="text-center mb-4">📊 Tableau de Bord des Feedbacks</h2>
+
+    <!-- Cartes récapitulatives -->
+    <div class="row text-center mb-4">
+        <div class="col-md-3">
+            <div class="card shadow-sm p-3">
+                <h5>Total</h5>
+                <h3 id="totalCount">@Model.Count()</h3>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning shadow-sm p-3 text-dark">
+                <h5>Pending</h5>
+                <h3 id="pendingCount">@Model.Count(f => f.StatusName == "Pending")</h3>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success shadow-sm p-3 text-white">
+                <h5>Approved</h5>
+                <h3 id="approvedCount">@Model.Count(f => f.StatusName == "Approved")</h3>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-danger shadow-sm p-3 text-white">
+                <h5>Rejected</h5>
+                <h3 id="rejectedCount">@Model.Count(f => f.StatusName == "Rejected")</h3>
+            </div>
+        </div>
+    </div>
+
+    <!-- Graphique -->
+    <div class="text-center mb-5">
+        <canvas id="statusChart" style="max-width: 500px; margin: auto;"></canvas>
+    </div>
+
+    <!-- Filtres -->
+    <div class="text-center mb-4">
+        <button class="btn btn-secondary filter-btn" data-filter="All">Tous</button>
+        <button class="btn btn-warning filter-btn" data-filter="Pending">Pending</button>
+        <button class="btn btn-success filter-btn text-white" data-filter="Approved">Approved</button>
+        <button class="btn btn-danger filter-btn text-white" data-filter="Rejected">Rejected</button>
+    </div>
+
+    <!-- Tableau des feedbacks -->
+    <div class="table-responsive">
+        <table class="table table-bordered table-striped" id="feedbackTable">
+            <thead class="table-dark">
+                <tr>
+                    <th>ID</th>
+                    <th>Commentaire</th>
+                    <th>Auteur</th>
+                    <th>Statut</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var f in Model)
+                {
+                    <tr data-status="@f.StatusName">
+                        <td>@f.Id</td>
+                        <td>@f.Comment</td>
+                        <td>@f.ContactName (@f.Email)</td>
+                        <td>@f.StatusName</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Bouton retour -->
+    <div class="text-center mt-4">
+        <a href="@Url.Action("FeedbackSummary", "Feedback")" class="btn btn-outline-primary">
+            🔙 Retour à la liste des Feedbacks
+        </a>
+    </div>
+</div>
+
+@section scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // === Données du graphique ===
+        const ctx = document.getElementById('statusChart').getContext('2d');
+        const chart = new Chart(ctx, {
+            type: 'pie',
+            data: {
+                labels: ['Pending', 'Approved', 'Rejected'],
+                datasets: [{
+                    data: [
+                        @Model.Count(f => f.StatusName == "Pending"),
+                        @Model.Count(f => f.StatusName == "Approved"),
+                        @Model.Count(f => f.StatusName == "Rejected")
+                    ],
+                    backgroundColor: ['#f0ad4e', '#5cb85c', '#d9534f']
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    title: { display: true, text: 'Répartition des Statuts de Feedbacks' }
+                }
+            }
+        });
+
+        // === Filtres dynamiques ===
+        document.querySelectorAll(".filter-btn").forEach(btn => {
+            btn.addEventListener("click", () => {
+                const filter = btn.getAttribute("data-filter");
+                const rows = document.querySelectorAll("#feedbackTable tbody tr");
+
+                rows.forEach(row => {
+                    const status = row.getAttribute("data-status");
+                    if (filter === "All" || status === filter) {
+                        row.style.display = "";
+                    } else {
+                        row.style.display = "none";
+                    }
+                });
+            });
+        });
+    </script>
+}

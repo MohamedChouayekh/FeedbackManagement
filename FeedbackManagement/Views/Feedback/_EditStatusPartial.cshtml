@@ -1,0 +1,74 @@
+﻿@model FeedbackManagement.Models.ViewModels.FeedbackStatusViewModel
+
+<div class="modal-header">
+    <h5 class="modal-title">Modifier le statut du feedback</h5>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+</div>
+
+@using (Html.BeginForm("EditStatus", "Feedback", FormMethod.Post, new { id = "editStatusForm" }))
+{
+    @Html.AntiForgeryToken()
+    @Html.HiddenFor(m => m.Id)
+
+    <div class="modal-body">
+        <div class="mb-3">
+            @Html.LabelFor(m => m.StatusId, "Statut", htmlAttributes: new { @class = "form-label" })
+            @Html.DropDownListFor(
+                m => m.StatusId,
+                (SelectList)ViewBag.StatusId,
+                "Sélectionner un statut",
+                new { @class = "form-select", id = "StatusId" }
+            )
+            @Html.ValidationMessageFor(m => m.StatusId, "", new { @class = "text-danger" })
+        </div>
+
+        <div class="mb-3">
+            @Html.LabelFor(m => m.Comment, "Comment", htmlAttributes: new { @class = "form-label" })
+            @Html.TextAreaFor(m => m.Comment, new { @class = "form-control", rows = 3, placeholder = "Votre commentaire..." })
+            @Html.ValidationMessageFor(m => m.Comment, "", new { @class = "text-danger" })
+        </div>
+    </div>
+
+    <div class="modal-footer">
+        <button type="button" id="saveStatusBtn" class="btn btn-primary">Enregistrer</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+    </div>
+}
+
+@section Scripts {
+    <script>
+        $(function () {
+            $("#saveStatusBtn").off("click").on("click", function () {
+                var btn = $(this);
+                var form = btn.closest("form");
+
+                btn.prop("disabled", true).text("Enregistrement...");
+
+                $.ajax({
+                    url: form.attr("action"),
+                    type: "POST",
+                    data: form.serialize(),
+                    success: function (result) {
+                        if (result.success) {
+                            // Mise à jour directe du tableau sans refresh
+                            var row = $("tr[data-id='" + result.id + "']");
+                            row.find(".status").text(result.status);
+                            row.find("td:nth-child(5)").text(result.comment); // Mettre à jour le commentaire si besoin
+                            var modalEl = document.getElementById('editModal');
+                            var modal = bootstrap.Modal.getInstance(modalEl);
+                            modal.hide();
+                        } else {
+                            alert(result.error || "Erreur lors de la mise à jour !");
+                        }
+                    },
+                    error: function () {
+                        alert("Erreur serveur lors de la mise à jour !");
+                    },
+                    complete: function () {
+                        btn.prop("disabled", false).text("Enregistrer");
+                    }
+                });
+            });
+        });
+    </script>
+}
