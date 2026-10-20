@@ -1,6 +1,6 @@
 # FeedbackManagement
 
-**Projet de stage chez Acteol — Juillet–août 2025**
+**Projet de stage chez Acteol —août 2025**
 
 ## Présentation
 
